@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinner Dilemma</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        #game-container {
+            background-color: #ffffff; /* White background for the game */
+            border-radius: 1.5rem; /* Large rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 700px; /* Minimum height for better appearance */
+            max-height: 90vh; /* Max height to fit screen */
+        }
+
+        header {
+            background-color: #6366f1; /* Indigo header */
+            color: white;
+            padding: 1.5rem 1.5rem;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #message-display {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto; /* Scrollable message area */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem; /* Space between messages */
+            scroll-behavior: smooth; /* Smooth scrolling for new messages */
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1.2rem; /* Rounded message bubbles */
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .player-message {
+            background-color: #93c5fd; /* Light blue for player */
+            color: #1e3a8a; /* Dark blue text */
+            align-self: flex-end; /* Align to the right */
+            border-bottom-right-radius: 0.3rem; /* Tapered corner */
+        }
+
+        .partner-message {
+            background-color: #fca5a5; /* Light red for partner */
+            color: #991b1b; /* Dark red text */
+            align-self: flex-start; /* Align to the left */
+            border-bottom-left-radius: 0.3rem; /* Tapered corner */
+        }
+
+        #choice-buttons {
+            padding: 1.5rem;
+            background-color: #f8fafc; /* Light gray for choice area */
+            border-top: 1px solid #e2e8f0; /* Subtle separator */
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* Space between buttons */
+        }
+
+        .choice-button {
+            background-color: #6366f1; /* Indigo button */
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.75rem; /* Rounded buttons */
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .choice-button:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+
+        .choice-button:active {
+            background-color: #4338ca; /* Even darker on active */
+            transform: translateY(0);
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #e2e8f0; /* Light gray for typing indicator */
+            padding: 0.6rem 1rem;
+            border-radius: 1.2rem;
+            font-style: italic;
+            color: #64748b; /* Gray text */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ending-screen {
+            background-color: #e0f2fe; /* Light blue background for ending */
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            border-radius: 1.5rem; /* Match container radius */
+            color: #1e3a8a; /* Dark blue text */
+        }
+
+        .ending-screen h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1d4ed8; /* Stronger blue for heading */
+        }
+
+        .ending-screen p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .ending-screen button {
+            margin-top: 1.5rem;
+            background-color: #10b981; /* Green for restart button */
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ending-screen button:hover {
+            background-color: #059669; /* Darker green on hover */
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+            #game-container {
+                border-radius: 0; /* No border radius on small screens */
+                min-height: 100vh; /* Full height on mobile */
+                max-height: 100vh;
+            }
+            header {
+                border-radius: 0; /* No border radius on small screens */
+            }
+            .choice-button {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <header>Dinner Dilemma</header>
+        <div id="message-display">
+            <!-- Messages will be injected here -->
+        </div>
+        <div id="choice-buttons">
+            <!-- Choices will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let gameState = {
+            playerScore: 0, // Favors Chinese
+            partnerScore: 0, // Favors Pizza
+            relationshipScore: 0, // Positive for harmony, negative for friction
+            currentScene: 'intro',
+            messages: []
+        };
+
+        // Declare these as 'let' so they can be reassigned in restartGame
+        let messageDisplay;
+        let choiceButtonsDiv;
+        let gameContainer;
+
+
+        // Define the entire game conversation flow
+        const scenes = {
+            'intro': {
+                speaker: 'Partner',
+                message: "Hey love! Getting hungry. What are you thinking for dinner tonight?",
+                choices: [
+                    { text: "Oh, definitely craving some Chinese!", effects: { playerScore: 1 }, nextScene: 'playerSuggestsChinese' },
+                    { text: "Hmm, I'm open to suggestions! What are you in the mood for?", effects: { relationshipScore: 1 }, nextScene: 'partnerSuggests' },
+                ]
+            },
+            'playerSuggestsChinese': {
+                speaker: 'Player',
+                message: "Oh, definitely craving some Chinese! A good kung pao chicken sounds amazing.", // This message is now implicitly displayed by the choice text
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Chinese, huh? You know, I was actually thinking... pizza. Like, a really cheesy, glorious pizza.",
+                    choices: [
+                        { text: "Pizza? But we had pizza last week!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerComplainsPizza' },
+                        { text: "Pizza sounds good, but I've had a long day and really feel like something comforting like noodles.", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerGentlePush' },
+                        { text: "You know, pizza *does* sound pretty good right now...", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'playerGivesIn' },
+                    ]
+                }
+            },
+            'partnerSuggests': {
+                speaker: 'Player',
+                message: "Hmm, I'm open to suggestions! What are you in the mood for?", // This message is now implicitly displayed by the choice text
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Awesome! I was really hoping you'd say that because I've been dreaming of a giant pepperoni pizza all day. It's calling my name!",
+                    choices: [
+                        { text: "Pepperoni, you say? That does sound tempting... but Chinese is so much more diverse!", effects: { playerScore: 0.5 }, nextScene: 'playerSubtlePush' },
+                        { text: "Pizza! I knew it. Okay, let's talk about why Chinese is actually the superior choice tonight.", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerHardPush' },
+                        { text: "Oh, a pepperoni pizza sounds absolutely divine! You've convinced me.", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'playerGivesInEarly' },
+                    ]
+                }
+            },
+            'playerComplainsPizza': {
+                speaker: 'Player',
+                message: "Pizza? But we had pizza last week! I feel like we always end up getting pizza.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Did we? Felt like ages ago! Anyway, it's just so easy and delicious. Plus, I saw a new place that looks amazing!",
+                    choices: [
+                        { text: "Easy and delicious, like Chinese! And think of all the delicious sauces!", effects: { playerScore: 1 }, nextScene: 'playerCompares' },
+                        { text: "A new pizza place, huh? Tell me more...", effects: { partnerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'partnerNewPlace' },
+                    ]
+                }
+            },
+            'playerGentlePush': {
+                speaker: 'Player',
+                message: "Pizza sounds good, but I've had a long day and really feel like something comforting like noodles. Maybe from that new Chinese place?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Aww, you're tired? I could totally cuddle you instead of eating pizza... but then we'd still be hungry! Noodles are good, but pizza is like a hug you can eat!",
+                    choices: [
+                        { text: "A hug you can eat, that's adorable! But noodles are definitely more of a cozy blanket.", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerCozyNoodles' },
+                        { text: "Let's compromise. Half Chinese, half pizza? Or maybe just Chinese tonight and pizza tomorrow?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'playerSuggestCompromise' },
+                    ]
+                }
+            },
+            'playerGivesIn': {
+                speaker: 'Player',
+                message: "You know, pizza *does* sound pretty good right now... I guess I can always have Chinese another night.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Yay! You're the best! We can totally do Chinese soon, I promise! What toppings are we thinking?",
+                    choices: [
+                        { text: "Deal! As long as we get extra pineapple. (Kidding... mostly)", effects: { partnerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                        { text: "Fine. Just make sure it's not too greasy. And we *are* getting Chinese next time.", effects: { partnerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerSubtlePush': {
+                speaker: 'Player',
+                message: "Pepperoni, you say? That does sound tempting... but Chinese is so much more diverse! We could have dumplings, noodles, rice, sweet and sour... so many options!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "True, Chinese has variety! But pizza... it's just so perfectly self-contained. A whole meal on one glorious crust!",
+                    choices: [
+                        { text: "A whole meal, yes! But Chinese is an adventure for your taste buds!", effects: { playerScore: 1 }, nextScene: 'playerTasteBuds' },
+                        { text: "You're right, it is a glorious crust. Maybe we could get Chinese for lunch tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerHardPush': {
+                speaker: 'Player',
+                message: "Healthier? Don't tell me you're going to use the 'healthy' argument! It's Friday night! We deserve comfort!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Healthier? Don't tell me you're going to use the 'healthy' argument! It's Friday night! We deserve comfort!",
+                    choices: [
+                        { text: "Comfort is subjective! A warm bowl of wonton soup is pure comfort!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerWontonSoup' },
+                        { text: "Okay, maybe not *strictly* healthier... but definitely more exciting!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerMoreExciting' },
+                    ]
+                }
+            },
+            'playerGivesInEarly': {
+                speaker: 'Player',
+                message: "Oh, a pepperoni pizza sounds absolutely divine! You've convinced me.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "YES! You're the best partner ever! High five! What kind of crust are we getting?",
+                    choices: [
+                        { text: "Definitely thick crust. And a side of garlic knots!", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaSuperHappy' },
+                        { text: "Thin crust. And I still think Chinese would have been better.", effects: { partnerScore: 0.5, relationshipScore: -1 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerCompares': {
+                speaker: 'Player',
+                message: "Easy and delicious, like Chinese! And think of all the delicious sauces! Sweet and sour, szechuan, hoisin... so much flavor!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Sauces are great, but pizza has melted cheese! And who doesn't love melted cheese?",
+                    choices: [
+                        { text: "Okay, melted cheese is a strong point. But what about crispy spring rolls?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerSpringRolls' },
+                        { text: "Melted cheese is *okay*, but nowhere near the complexity of a good stir-fry.", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerComplexStirFry' },
+                    ]
+                }
+            },
+            'partnerNewPlace': {
+                speaker: 'Player',
+                message: "A new pizza place, huh? Tell me more...",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "It's called 'The Cheesy Dream'! Their menu looks amazing, and they have crazy toppings like truffle oil and prosciutto! Fancy pizza!",
+                    choices: [
+                        { text: "Truffle and prosciutto? That's definitely tempting... but a good General Tso's is also a dream!", effects: { playerScore: 0.5 }, nextScene: 'playerTemptedByPizza' },
+                        { text: "Fancy pizza sounds like a fancy price. Chinese is usually more budget-friendly!", effects: { playerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'playerBudgetArgument' },
+                    ]
+                }
+            },
+            'playerCozyNoodles': {
+                speaker: 'Player',
+                message: "A hug you can eat, that's adorable! But noodles are definitely more of a cozy blanket. Warm, comforting, and perfect for a tired soul.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "You make a good point about the cozy blanket. But a pizza is like a giant, warm, cheesy blanket! You can wrap yourself in it!",
+                    choices: [
+                        { text: "Okay, you really sell the pizza blanket! But my blanket needs dumplings!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerDumplingBlanket' },
+                        { text: "Alright, you're too cute when you talk about pizza. Let's do pizza tonight, and Chinese tomorrow for sure?", effects: { partnerScore: 1, relationshipScore: 1.5 }, nextScene: 'endingPizzaSuperHappy' },
+                    ]
+                }
+            },
+            'playerSuggestCompromise': {
+                speaker: 'Player',
+                message: "Let's compromise. Half Chinese, half pizza? Or maybe just Chinese tonight and pizza tomorrow?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Half Chinese, half pizza? That's genius! Or Chinese tonight, pizza tomorrow is also a solid plan. You're so good at this!",
+                    choices: [
+                        { text: "Great! Half and half it is! Or maybe you choose the restaurant and I choose the cuisine?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                        { text: "Let's do Chinese tonight then. Pizza tomorrow is a promise!", effects: { playerScore: 1, relationshipScore: 1 }, nextScene: 'endingChineseHappy' },
+                    ]
+                }
+            },
+            'playerTasteBuds': {
+                speaker: 'Player',
+                message: "A whole meal, yes! But Chinese is an adventure for your taste buds! So many textures, spices, and cooking methods!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My taste buds just want a consistent, cheesy journey. An adventure sounds like too much work after a long day!",
+                    choices: [
+                        { text: "An adventure that pays off with deliciousness! Think of the spring rolls!", effects: { playerScore: 1 }, nextScene: 'playerSpringRolls' },
+                        { text: "Okay, maybe not an 'adventure', but a delightful culinary experience!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerDelightfulCulinary' },
+                    ]
+                }
+            },
+            'playerWontonSoup': {
+                speaker: 'Player',
+                message: "Comfort is subjective! A warm bowl of wonton soup is pure comfort! And it's so light!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Wonton soup is good, but it's not... pizza. Pizza is the ultimate comfort food. It has carbs, cheese, and more carbs!",
+                    choices: [
+                        { text: "Carbs are great, but so is protein and veggies! Chinese has a great balance.", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerBalanceArgument' },
+                        { text: "You're right, pizza does hit that ultimate comfort spot. But maybe we can have both sometime this weekend?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerMoreExciting': {
+                speaker: 'Player',
+                message: "Okay, maybe not *strictly* healthier... but definitely more exciting! So many dishes to choose from!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Exciting is overrated when you're hungry! I just want reliable, delicious, cheesy goodness.",
+                    choices: [
+                        { text: "But think of the joy of discovering a new favorite Chinese dish!", effects: { playerScore: 0.5 }, nextScene: 'playerDiscoverNewDish' },
+                        { text: "You're right, reliability is nice. What if we get a classic Chinese dish then? Like General Tso's?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerClassicChinese' },
+                    ]
+                }
+            },
+            'playerSpringRolls': {
+                speaker: 'Player',
+                message: "Okay, melted cheese is a strong point. But what about crispy spring rolls? And dumplings? You can't get that with pizza!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "True, spring rolls are good. But pizza has garlic knots! And cheesy breadsticks! It's a carb party!",
+                    choices: [
+                        { text: "A carb party needs some variety! Noodles are definitely required at this party.", effects: { playerScore: 1 }, nextScene: 'playerNoodleParty' },
+                        { text: "Okay, you have a point about the carb party. Maybe we do pizza tonight, but next time it's Chinese for sure?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerComplexStirFry': {
+                speaker: 'Player',
+                message: "Melted cheese is *okay*, but nowhere near the complexity of a good stir-fry. The layers of flavor!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Complexity? I just want to eat! My stomach doesn't care about layers, it cares about immediate gratification!",
+                    choices: [
+                        { text: "Immediate gratification is best when it's also exquisitely flavored! Like Chinese!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerExquisiteFlavor' },
+                        { text: "You're right, immediate gratification is key. How about we get takeout from that fast Chinese place?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerFastChinese' },
+                    ]
+                }
+            },
+            'playerTemptedByPizza': {
+                speaker: 'Player',
+                message: "Truffle and prosciutto? That's definitely tempting... but a good General Tso's is also a dream!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "See! I knew you'd come around to the fancy pizza! It's an experience!",
+                    choices: [
+                        { text: "An experience, but is it a *Chinese* experience? Think crispy duck!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerCrispyDuck' },
+                        { text: "Okay, you almost had me. But then I remembered how much I love wontons.", effects: { playerScore: 0.5 }, nextScene: 'playerRemembersWontons' },
+                    ]
+                }
+            },
+            'playerBudgetArgument': {
+                speaker: 'Player',
+                message: "Fancy pizza sounds like a fancy price. Chinese is usually more budget-friendly!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "It's Friday! Treat yourself! Plus, pizza is great for leftovers, so it's practically two meals!",
+                    choices: [
+                        { text: "Leftovers are good, but Chinese food is also amazing as leftovers! Cold sesame noodles, anyone?", effects: { playerScore: 1 }, nextScene: 'playerChineseLeftovers' },
+                        { text: "You're right, treating ourselves is important. But I still think Chinese gives us more bang for our buck.", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerBangForBuck' },
+                    ]
+                }
+            },
+            'playerDumplingBlanket': {
+                speaker: 'Player',
+                message: "Okay, you really sell the pizza blanket! But my blanket needs dumplings! And maybe some egg drop soup.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Dumplings and soup sound good when I'm sick! But I'm healthy and want pizza!",
+                    choices: [
+                        { text: "Chinese isn't just for when you're sick! It's for deliciousness!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNotSick' },
+                        { text: "Fine, you win on the sick argument. But can we get Chinese next week for sure?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerBalanceArgument': {
+                speaker: 'Player',
+                message: "Carbs are great, but so is protein and veggies! Chinese has a great balance.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Balance schmbalance! It's Friday, not a diet day! I want deliciousness!",
+                    choices: [
+                        { text: "Deliciousness *can* be balanced, you know! Think of how good you'll feel after a well-rounded meal!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerFeelGood' },
+                        { text: "You're right, it is Friday. Maybe a small pizza tonight and a huge Chinese feast tomorrow?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerDiscoverNewDish': {
+                speaker: 'Player',
+                message: "But think of the joy of discovering a new favorite Chinese dish! The possibilities are endless!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "The possibility of a new favorite pizza is also endless! And less risky!",
+                    choices: [
+                        { text: "Risk is good! It leads to delicious discoveries!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerRiskReward' },
+                        { text: "Okay, less risk is appealing. How about we try a new Chinese place tonight, one with amazing reviews?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerNewChinesePlace' },
+                    ]
+                }
+            },
+            'playerClassicChinese': {
+                speaker: 'Player',
+                message: "You're right, reliability is nice. What if we get a classic Chinese dish then? Like General Tso's?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "General Tso's is good, I admit. But it's still not the cheesy goodness of pizza!",
+                    choices: [
+                        { text: "It's spicy, sweet, and crispy! It's got everything!", effects: { playerScore: 1 }, nextScene: 'playerGeneralTsos' },
+                        { text: "Alright, you're really set on pizza, aren't you? How about we share a small pizza and also get some Chinese takeout?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerNoodleParty': {
+                speaker: 'Player',
+                message: "A carb party needs some variety! Noodles are definitely required at this party. And fried rice!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Okay, you got me on the carb party. Fine. We can get some noodles too. But only if we get a large pizza first.",
+                    choices: [
+                        { text: "Deal! Pizza first, then a noodle chaser. You're the best!", effects: { partnerScore: 1, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                        { text: "No, Chinese first! We need proper fuel before the carb overload.", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerChineseFirst' },
+                    ]
+                }
+            },
+            'playerExquisiteFlavor': {
+                speaker: 'Player',
+                message: "Immediate gratification is best when it's also exquisitely flavored! Like Chinese!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Exquisitely flavored pizza is also a thing! Don't you dare try to tell me pizza can't be exquisite!",
+                    choices: [
+                        { text: "Okay, *some* pizza can be exquisite. But *all* Chinese food is exquisite!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerAllChineseExquisite' },
+                        { text: "You're right, pizza can be exquisite. Let's find a place that does both well, or one for tonight and one for tomorrow?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerFastChinese': {
+                speaker: 'Player',
+                message: "You're right, immediate gratification is key. How about we get takeout from that fast Chinese place?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Fast Chinese, huh? Is it... *fast enough*? Like, pizza-fast?",
+                    choices: [
+                        { text: "Faster than waiting for delivery! We can pick it up on the way!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerPickUpChinese' },
+                        { text: "Not quite pizza-fast, but it's worth the wait for the deliciousness!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerWorthTheWait' },
+                    ]
+                }
+            },
+            'playerCrispyDuck': {
+                speaker: 'Player',
+                message: "An experience, but is it a *Chinese* experience? Think crispy duck! Or Peking duck!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Crispy duck is amazing! But it's also messy and not really a 'tonight' kind of meal for me.",
+                    choices: [
+                        { text: "It's worth the mess for the deliciousness! We can put down newspaper!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNewspaper' },
+                        { text: "Okay, maybe not crispy duck for a casual night. But other Chinese dishes are easy!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerOtherChineseEasy' },
+                    ]
+                }
+            },
+            'playerRemembersWontons': {
+                speaker: 'Player',
+                message: "Okay, you almost had me. But then I remembered how much I love wontons.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Wontons are good, I'll give you that. But they're not a whole meal like pizza!",
+                    choices: [
+                        { text: "They can be part of a larger, delicious Chinese meal! With noodles and rice!", effects: { playerScore: 1 }, nextScene: 'playerPartofMeal' },
+                        { text: "You're right, pizza is a whole meal. But can we get wontons as an appetizer?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerChineseLeftovers': {
+                speaker: 'Player',
+                message: "Leftovers are good, but Chinese food is also amazing as leftovers! Cold sesame noodles, anyone?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Cold sesame noodles, that *is* a strong point... but cold pizza for breakfast is legendary!",
+                    choices: [
+                        { text: "Legendary is overrated! Chinese leftovers are practical and delicious!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerLegendaryOverrated' },
+                        { text: "Okay, cold pizza for breakfast *is* good. But we can make new legends with Chinese food! Like General Tso's for breakfast!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerNewLegends' },
+                    ]
+                }
+            },
+            'playerBangForBuck': {
+                speaker: 'Player',
+                message: "You're right, treating ourselves is important. But I still think Chinese gives us more bang for our buck.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Bang for our buck is great, but pizza gives us bang for our taste buds!",
+                    choices: [
+                        { text: "Chinese gives us bang for both! It's a double whammy!", effects: { playerScore: 1 }, nextScene: 'playerDoubleWhammy' },
+                        { text: "You know, you make a good point about the taste buds. How about we get a small pizza, and then order Chinese for tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerNotSick': {
+                speaker: 'Player',
+                message: "Chinese isn't just for when you're sick! It's for deliciousness! And celebration! And any day of the week!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Okay, okay, I get it. You really love Chinese food. But I really, really love pizza!",
+                    choices: [
+                        { text: "And I love you! So let's get Chinese and then cuddle on the couch!", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingChineseHappy' },
+                        { text: "We both love food! Let's just alternate? Chinese tonight, pizza tomorrow?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerFeelGood': {
+                speaker: 'Player',
+                message: "Deliciousness *can* be balanced, you know! Think of how good you'll feel after a well-rounded meal!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I feel good when I eat pizza! A full, happy kind of good!",
+                    choices: [
+                        { text: "And I feel good when I see you happy... which you'd be with Chinese!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerHappyWithChinese' },
+                        { text: "Okay, you're very convincing. How about we get Chinese, and you can have an extra large dessert?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingChineseHappy' },
+                    ]
+                }
+            },
+            'playerRiskReward': {
+                speaker: 'Player',
+                message: "Risk is good! It leads to delicious discoveries! And growth!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I don't want growth tonight, I want comfort! And predictability!",
+                    choices: [
+                        { text: "Predictably delicious Chinese food, then! It's a classic for a reason!", effects: { playerScore: 1 }, nextScene: 'playerPredictableChinese' },
+                        { text: "Okay, predictability it is. So, Chinese or pizza?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerFinalDecision' },
+                    ]
+                }
+            },
+            'playerNewChinesePlace': {
+                speaker: 'Player',
+                message: "Okay, less risk is appealing. How about we try a new Chinese place tonight, one with amazing reviews?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A *new* Chinese place? That sounds like a lot of research. Pizza is just a phone call away!",
+                    choices: [
+                        { text: "I've already done the research! It's top-rated!", effects: { playerScore: 1, relationshipScore: 0.5 }, nextScene: 'playerAlreadyResearched' },
+                        { text: "You're right, convenience is a factor. Maybe Chinese another night then?", effects: { partnerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerGeneralTsos': {
+                speaker: 'Player',
+                message: "It's spicy, sweet, and crispy! It's got everything!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Everything except cheese! And that's a big everything for me!",
+                    choices: [
+                        { text: "We can add cheese! Kidding! But seriously, it's so good!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerAddCheese' },
+                        { text: "Okay, I get it. You really love cheese. What if we get a pizza with *no* cheese for me, and Chinese for you?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerChineseFirst': {
+                speaker: 'Player',
+                message: "No, Chinese first! We need proper fuel before the carb overload.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Fuel? Pizza *is* fuel! It's the ultimate energy source!",
+                    choices: [
+                        { text: "It's a delicious energy source, but Chinese is a more balanced one!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerBalancedFuel' },
+                        { text: "Okay, you're passionate about pizza fuel. Fine, pizza first. But then Chinese right after, no excuses!", effects: { partnerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingCompromiseGrudging' },
+                    ]
+                }
+            },
+            'playerAllChineseExquisite': {
+                speaker: 'Player',
+                message: "Okay, *some* pizza can be exquisite. But *all* Chinese food is exquisite! Every dish is a masterpiece!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "That's a bold claim! I've had some questionable Chinese food in my day. Unlike pizza, which is always perfect!",
+                    choices: [
+                        { text: "You just haven't had the *right* Chinese food then! Let me show you!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerRightChinese' },
+                        { text: "Alright, maybe 'all' is an exaggeration. But the *good* Chinese food is truly exquisite!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerGoodChineseExquisite' },
+                    ]
+                }
+            },
+            'playerPickUpChinese': {
+                speaker: 'Player',
+                message: "Faster than waiting for delivery! We can pick it up on the way!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Picking it up means getting dressed! I was hoping for a sweatpants kind of night.",
+                    choices: [
+                        { text: "We can still wear sweatpants! Just put a coat over them!", effects: { playerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'playerSweatpants' },
+                        { text: "Good point. Maybe we just order something for delivery then? Like Chinese!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerOrderChinese' },
+                    ]
+                }
+            },
+            'playerWorthTheWait': {
+                speaker: 'Player',
+                message: "Not quite pizza-fast, but it's worth the wait for the deliciousness! Anticipation makes it even better!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Anticipation just makes me hungrier! I need immediate deliciousness!",
+                    choices: [
+                        { text: "Immediate deliciousness is still on the menu, just a few minutes later!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerFewMinutes' },
+                        { text: "Okay, okay, I hear you. What if we order pizza, but get a Chinese appetizer from somewhere else first?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerOtherChineseEasy': {
+                speaker: 'Player',
+                message: "Okay, maybe not crispy duck for a casual night. But other Chinese dishes are easy! Like orange chicken or lo mein!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Orange chicken is good... but it's still not as satisfying as a whole pizza. You can fold a pizza!",
+                    choices: [
+                        { text: "You can fold noodles too! And put them in a convenient container!", effects: { playerScore: 1 }, nextScene: 'playerFoldNoodles' },
+                        { text: "You make a compelling argument with the folding. What if we get a small orange chicken and a small pizza?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerPartofMeal': {
+                speaker: 'Player',
+                message: "They can be part of a larger, delicious Chinese meal! With noodles and rice! It's a feast!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A feast sounds like a lot of dishes and cleanup. Pizza is one box, one glorious box!",
+                    choices: [
+                        { text: "We can use paper plates! And it's worth the dishes for the variety!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerPaperPlates' },
+                        { text: "You're right, one box is appealing. But a Chinese feast is a special treat!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerSpecialTreat' },
+                    ]
+                }
+            },
+            'playerLegendaryOverrated': {
+                speaker: 'Player',
+                message: "Legendary is overrated! Chinese leftovers are practical and delicious! And they don't get soggy!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Soggy pizza still beats dry noodles! And cold pizza for breakfast is legendary!",
+                    choices: [
+                        { text: "Charm can't compare to exquisite flavor! And Chinese noodles don't have to be dry!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerExquisiteCharm' },
+                        { text: "Okay, you have a point about the charm. But Chinese leftovers are still top-tier! Let's get both?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerNewLegends': {
+                speaker: 'Player',
+                message: "Okay, cold pizza for breakfast *is* good. But we can make new legends with Chinese food! Like General Tso's for breakfast!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "General Tso's for breakfast... that's... bold. And intriguing. But still not pizza.",
+                    choices: [
+                        { text: "It's a new frontier of breakfast deliciousness! Imagine the possibilities!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerNewFrontier' },
+                        { text: "Alright, perhaps General Tso's is too much for breakfast. But lunch tomorrow?", effects: { playerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingChineseHappy' },
+                    ]
+                }
+            },
+            'playerDoubleWhammy': {
+                speaker: 'Player',
+                message: "Chinese gives us bang for both! It's a double whammy! Flavor and value!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A double whammy sounds exhausting! I just want a single, powerful pizza whammy!",
+                    choices: [
+                        { text: "But think of the satisfaction of getting both! It's a win-win!", effects: { playerScore: 1 }, nextScene: 'playerWinWin' },
+                        { text: "You're right, maybe a double whammy is too much. How about a compromise whammy? Half pizza, half Chinese?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerHappyWithChinese': {
+                speaker: 'Player',
+                message: "And I feel good when I see you happy... which you'd be with Chinese! I know it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I'd be happy, but would I be *pizza* happy? That's a different level of happy.",
+                    choices: [
+                        { text: "It's an equally valid and delicious happy! Trust me!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerEquallyHappy' },
+                        { text: "Okay, okay. Your pizza happy is legendary. Let's get pizza tonight, and Chinese tomorrow, deal?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerPredictableChinese': {
+                speaker: 'Player',
+                message: "Predictably delicious Chinese food, then! It's a classic for a reason!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A classic, yes. But pizza is a timeless masterpiece! It transcends mere classic status!",
+                    choices: [
+                        { text: "Masterpieces can be Chinese too! Like a perfectly executed Peking Duck!", effects: { playerScore: 1 }, nextScene: 'playerPekingDuck' },
+                        { text: "You're right, pizza is a masterpiece. So, what if we get a classic Chinese dish *and* a classic pizza?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerFinalDecision': {
+                speaker: 'Player',
+                message: "Okay, predictability it is. So, Chinese or pizza?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Pizza! Obviously! Why are you even asking?!",
+                    choices: [
+                        { text: "Because I was hoping for Chinese! Come on, just this once?", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerBegs' },
+                        { text: "You're right, pizza it is. You win this round, my love.", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerAlreadyResearched': {
+                speaker: 'Player',
+                message: "I've already done the research! It's top-rated, and they have the best wontons!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Wontons, you say? That's a powerful argument. But I still picture myself melting into a pizza.",
+                    choices: [
+                        { text: "Melt into wontons! They're like little pockets of joy!", effects: { playerScore: 1 }, nextScene: 'playerMeltIntoWontons' },
+                        { text: "Okay, you really want to melt into that pizza, don't you? Fine. Pizza tonight, wontons tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerAddCheese': {
+                speaker: 'Player',
+                message: "We can add cheese! Kidding! But seriously, it's so good! You just have to trust me on this one.",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Trust is important, but so is cheese! And pizza delivers on both!",
+                    choices: [
+                        { text: "Chinese delivers on deliciousness and trust! Let's get it!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerTrustChinese' },
+                        { text: "You're right, pizza is reliable. What if we get a cheesy pizza and a side of something Chinese for me?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerBalancedFuel': {
+                speaker: 'Player',
+                message: "It's a delicious energy source, but Chinese is a more balanced one! For sustained happiness!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I don't want sustained happiness, I want explosive happiness! And pizza is explosive!",
+                    choices: [
+                        { text: "Explosive happiness can come from Chinese food too! With a spicy kick!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerExplosiveChinese' },
+                        { text: "You know, explosive happiness sounds appealing. How about we get the most epic pizza you can imagine, and a small Chinese appetizer?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerRightChinese': {
+                speaker: 'Player',
+                message: "You just haven't had the *right* Chinese food then! Let me show you! I know the perfect place!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "The perfect place, huh? That's a big promise. Is it pizza-perfect?",
+                    choices: [
+                        { text: "Even better! It's *Chinese*-perfect!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerChinesePerfect' },
+                        { text: "It's Chinese-perfect, and it has great reviews! We can try it tonight?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerTryTonight' },
+                    ]
+                }
+            },
+            'playerGoodChineseExquisite': {
+                speaker: 'Player',
+                message: "Alright, maybe 'all' is an exaggeration. But the *good* Chinese food is truly exquisite! And we deserve good!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "We deserve good, and good pizza is good! It's a universal truth!",
+                    choices: [
+                        { text: "And Chinese food is a universal deliciousness!", effects: { playerScore: 1 }, nextScene: 'playerUniversalDeliciousness' },
+                        { text: "You're right, good pizza is good. So, what if we get the best pizza ever, and also some amazing Chinese appetizers?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerSweatpants': {
+                speaker: 'Player',
+                message: "We can still wear sweatpants! Just put a coat over them! It'll be a quick dash!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A dash? My kind of dash is to the fridge for more soda during the movie. Not to a restaurant.",
+                    choices: [
+                        { text: "But think of the hot, fresh Chinese food! Worth the dash!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerHotFresh' },
+                        { text: "Good point. Maybe we just order something for delivery then? Like Chinese!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerOrderChinese' },
+                    ]
+                }
+            },
+            'playerOrderChinese': {
+                speaker: 'Player',
+                message: "You're right, a dash might be too much. We can just order Chinese for delivery!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Delivery? That's better. But is it faster than pizza delivery?",
+                    choices: [
+                        { text: "Sometimes! And it's always more delicious!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerMoreDelicious' },
+                        { text: "Not always, but the quality is worth it! And we can watch a movie while we wait!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerMovieAndChinese' },
+                    ]
+                }
+            },
+            'playerFewMinutes': {
+                speaker: 'Player',
+                message: "Immediate deliciousness is still on the menu, just a few minutes later! It builds character!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My character is already built! I just want pizza now!",
+                    choices: [
+                        { text: "Your character is amazing, but Chinese food will make it even more amazing!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerAmazingCharacter' },
+                        { text: "Okay, no more character building for tonight. Pizza it is. But seriously, next time Chinese!", effects: { partnerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerFoldNoodles': {
+                speaker: 'Player',
+                message: "You can fold noodles too! And put them in a convenient container! It's portable deliciousness!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Portable noodles? That sounds like a car mess waiting to happen. Pizza slices are self-contained!",
+                    choices: [
+                        { text: "Not if you're careful! And think of the variety of noodles!", effects: { playerScore: 1 }, nextScene: 'playerVarietyNoodles' },
+                        { text: "You're right, self-contained is good. What if we get a personal pizza each, and then share some noodles?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerPaperPlates': {
+                speaker: 'Player',
+                message: "We can use paper plates! And it's worth the dishes for the variety! We need options!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Paper plates are sad! And pizza is one big, delicious option!",
+                    choices: [
+                        { text: "Paper plates are practical! And Chinese offers endless delicious options!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerPracticalPaper' },
+                        { text: "You're right, one big option is easy. Maybe just one Chinese dish then? A classic?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerClassicChineseSingle' },
+                    ]
+                }
+            },
+            'playerSpecialTreat': {
+                speaker: 'Player',
+                message: "You're right, one box is appealing. But a Chinese feast is a special treat! A celebration!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Pizza is a special treat too! Every single time!",
+                    choices: [
+                        { text: "But Chinese is a *different* special treat! More exotic!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerExoticTreat' },
+                        { text: "You're right, pizza is always a treat. How about we combine our special treats? Pizza AND Chinese?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerExquisiteCharm': {
+                speaker: 'Player',
+                message: "Charm can't compare to exquisite flavor! And Chinese noodles don't have to be dry!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Okay, maybe not dry. But pizza has that gooey, stretchy cheese! Nothing beats that!",
+                    choices: [
+                        { text: "Except perfectly seasoned, fresh Chinese ingredients! They beat everything!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerFreshIngredients' },
+                        { text: "You're right, the gooey cheese is hard to beat. How about we get pizza, but add some Chinese appetizers to our order?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerNewFrontier': {
+                speaker: 'Player',
+                message: "It's a new frontier of breakfast deliciousness! Imagine the possibilities! We could start a trend!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Starting trends sounds like too much pressure before coffee. I just want established deliciousness.",
+                    choices: [
+                        { text: "But the glory of being pioneers! Of culinary exploration!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerPioneers' },
+                        { text: "You're right, pressure is not what we need right now. How about we just stick to dinner for now?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerStickingToDinner' },
+                    ]
+                }
+            },
+            'playerWinWin': {
+                speaker: 'Player',
+                message: "But think of the satisfaction of getting both! It's a win-win!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A win-win sounds like I have to share! My pizza is my precious!",
+                    choices: [
+                        { text: "But you'd be sharing Chinese too! It's a mutual sharing of deliciousness!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerMutualSharing' },
+                        { text: "You're right, your pizza is precious. So what if you get your own pizza, and I get my own Chinese?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerEquallyHappy': {
+                speaker: 'Player',
+                message: "It's an equally valid and delicious happy! Trust me!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I trust you with my life, but my taste buds are another matter! They only trust cheese!",
+                    choices: [
+                        { text: "Then let's teach your taste buds to trust other deliciousness! Like Chinese!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerTeachTasteBuds' },
+                        { text: "You're right, your taste buds are very particular. So, pizza tonight, but Chinese is non-negotiable for tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerPekingDuck': {
+                speaker: 'Player',
+                message: "Masterpieces can be Chinese too! Like a perfectly executed Peking Duck!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Peking Duck is a whole event! I just want to chill and eat pizza on the couch.",
+                    choices: [
+                        { text: "It can be a chill event! We can eat it on the couch!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerPekingCouch' },
+                        { text: "You're right, Peking Duck is a big deal. How about a simpler Chinese dish then? Like stir-fry?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerSimpleChinese' },
+                    ]
+                }
+            },
+            'playerBegs': {
+                speaker: 'Player',
+                message: "Because I was hoping for Chinese! Come on, just this once? Please?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Aww, you're so cute when you beg! But my stomach is begging for pizza even harder!",
+                    choices: [
+                        { text: "My stomach is also begging! For General Tso's!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerStomachBegs' },
+                        { text: "Okay, you win. Pizza it is. But you owe me a Chinese feast next week!", effects: { partnerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerMeltIntoWontons': {
+                speaker: 'Player',
+                message: "Melt into wontons! They're like little pockets of joy! And soup!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Pockets of joy are great, but a whole pizza is a blanket of joy! And warmth!",
+                    choices: [
+                        { text: "A blanket of joy with more calories! Wontons are lighter!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerLighterWontons' },
+                        { text: "You're right, a blanket of joy sounds cozy. Maybe we get both? Wontons as an appetizer, then pizza?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerTrustChinese': {
+                speaker: 'Player',
+                message: "Chinese delivers on deliciousness and trust! Let's get it! You won't regret it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Regret is a strong word. But pizza has never betrayed me. Can Chinese say that?",
+                    choices: [
+                        { text: "Chinese has only ever delivered pure joy! No betrayal here!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNoBetrayal' },
+                        { text: "You're right, pizza is a loyal friend. How about we get pizza, but you promise to try Chinese with an open mind next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerExplosiveChinese': {
+                speaker: 'Player',
+                message: "Explosive happiness can come from Chinese food too! With a spicy kick! Like mapo tofu!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Mapo tofu is too spicy for my delicate palate when I'm hungry! Pizza is a soothing balm!",
+                    choices: [
+                        { text: "We can get mild Chinese food! It doesn't have to be spicy!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerMildChinese' },
+                        { text: "You're right, a soothing balm sounds good. So, pizza tonight, but Chinese for a spicy adventure another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerChinesePerfect': {
+                speaker: 'Player',
+                message: "Even better! It's *Chinese*-perfect! You'll never go back to mere pizza!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Never go back to pizza? That's blasphemy! Pizza is life!",
+                    choices: [
+                        { text: "Chinese is a *richer* life! With more flavor!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerRicherLife' },
+                        { text: "Okay, maybe 'never go back' is strong. But it's really, really good! Just try it!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerJustTryIt' },
+                    ]
+                }
+            },
+            'playerTryTonight': {
+                speaker: 'Player',
+                message: "It's Chinese-perfect, and it has great reviews! We can try it tonight?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Trying a new place... that requires effort. Pizza is effortless!",
+                    choices: [
+                        { text: "But the reward is so much greater! A new favorite!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerGreaterReward' },
+                        { text: "You're right, effortless is tempting. How about we just order both, and see which one gets here first?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerUniversalDeliciousness': {
+                speaker: 'Player',
+                message: "And Chinese food is a universal deliciousness! Everyone loves it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Everyone loves pizza! It's a known fact!",
+                    choices: [
+                        { text: "And everyone loves Chinese! It's a double universal love!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerDoubleUniversal' },
+                        { text: "You're right, pizza is universally loved. So, how about we get pizza, and I'll convince you on Chinese next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerHotFresh': {
+                speaker: 'Player',
+                message: "But think of the hot, fresh Chinese food! Worth the dash!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Hot, fresh pizza is also worth the wait for delivery! And no dashing required!",
+                    choices: [
+                        { text: "Okay, fine. Delivery it is. Chinese delivery!", effects: { playerScore: 1, relationshipScore: 0.5 }, nextScene: 'playerOrderChinese' },
+                        { text: "You're right, no dashing is ideal. So, pizza delivery then?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerMoreDelicious': {
+                speaker: 'Player',
+                message: "Sometimes! And it's always more delicious!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "More delicious than pizza? You're treading on thin ice!",
+                    choices: [
+                        { text: "It's thick ice of deliciousness! Chinese is simply superior!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerSuperiorIce' },
+                        { text: "Okay, maybe not *always* more delicious, but definitely a strong contender! And so many options!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerStrongContender' },
+                    ]
+                }
+            },
+            'playerMovieAndChinese': {
+                speaker: 'Player',
+                message: "Not always, but the quality is worth it! And we can watch a movie while we wait!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A movie and pizza is a classic combo! A movie and Chinese... less so.",
+                    choices: [
+                        { text: "But it *could* be! We could start a new tradition!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNewTradition' },
+                        { text: "You're right, pizza and a movie is iconic. How about we get pizza and watch a movie, but I get to pick the movie?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerAmazingCharacter': {
+                speaker: 'Player',
+                message: "Your character is amazing, but Chinese food will make it even more amazing!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My amazing character wants pizza! It's a core desire!",
+                    choices: [
+                        { text: "Core desires can evolve! Embrace the Chinese evolution!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerChineseEvolution' },
+                        { text: "Okay, your core desire for pizza is strong. How about we get pizza, and tomorrow we have a Chinese food educational session?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerVarietyNoodles': {
+                speaker: 'Player',
+                message: "Not if you're careful! And think of the variety of noodles! Lo mein, chow fun, cellophane noodles...",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Variety is great, but cheesy simplicity is divine!",
+                    choices: [
+                        { text: "Divine variety, then! Chinese offers both!", effects: { playerScore: 1 }, nextScene: 'playerDivineVariety' },
+                        { text: "You're right, simplicity can be divine. So, pizza tonight, but a noodle adventure another night?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerPracticalPaper': {
+                speaker: 'Player',
+                message: "Paper plates are practical! And Chinese offers endless delicious options! We need options!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Options are overwhelming! Pizza is one perfect option!",
+                    choices: [
+                        { text: "One perfect option is boring! Embrace the delicious chaos of Chinese!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerDeliciousChaos' },
+                        { text: "You're right, too many options can be tough. How about we just pick one amazing Chinese dish, and share it?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'endingChineseHappy' },
+                    ]
+                }
+            },
+            'playerClassicChineseSingle': {
+                speaker: 'Player',
+                message: "You're right, one big option is easy. Maybe just one Chinese dish then? A classic?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A classic Chinese dish... like what?",
+                    choices: [
+                        { text: "General Tso's chicken! It's universally loved!", effects: { playerScore: 1 }, nextScene: 'playerGeneralTsoSingle' },
+                        { text: "Sweet and Sour Pork? It's always a crowd-plaser!", effects: { playerScore: 1 }, nextScene: 'playerSweetSourSingle' },
+                    ]
+                }
+            },
+            'playerExoticTreat': {
+                speaker: 'Player',
+                message: "But Chinese is a *different* special treat! More exotic! Like a culinary vacation!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A vacation? I just want dinner! And pizza is a staycation for my taste buds!",
+                    choices: [
+                        { text: "A staycation can be Chinese too! A delicious, flavorful staycation!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerChineseStaycation' },
+                        { text: "You're right, a staycation sounds nice. So, pizza it is, then?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerFreshIngredients': {
+                speaker: 'Player',
+                message: "Except perfectly seasoned, fresh Chinese ingredients! They beat everything!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Fresh ingredients are good, but melted cheese is a comfort! It's warm and gooey!",
+                    choices: [
+                        { text: "Warm and gooey can be Chinese too! Like a hot bao bun!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerHotBao' },
+                        { text: "You're right, gooey cheese is super comforting. What if we get pizza, and you get an extra cheesy one?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerPioneers': {
+                speaker: 'Player',
+                message: "But the glory of being pioneers! Of culinary exploration! Think of the stories!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Stories are for later! Right now, I'm just trying to survive being hungry! With pizza!",
+                    choices: [
+                        { text: "But the stories would be about delicious Chinese food! So worth it!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerStories' },
+                        { text: "You're right, hunger first. So pizza tonight, but a Chinese exploration next weekend?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerStickingToDinner': {
+                speaker: 'Player',
+                message: "You're right, pressure is not what we need right now. How about we just stick to dinner for now?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Good plan. So, dinner. Pizza?",
+                    choices: [
+                        { text: "Or Chinese?", effects: { playerScore: 1 }, nextScene: 'playerStillChinese' },
+                        { text: "Fine. Pizza.", effects: { partnerScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerMutualSharing': {
+                speaker: 'Player',
+                message: "But you'd be sharing Chinese too! It's a mutual sharing of deliciousness!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Mutual sharing is nice, but I want my own! My very own pizza!",
+                    choices: [
+                        { text: "Then get your own pizza! And I'll get my own Chinese! Everybody wins!", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                        { text: "Okay, fine. You can have your own pizza. But can I have my own Chinese?", effects: { playerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingChineseHappy' },
+                    ]
+                }
+            },
+            'playerTeachTasteBuds': {
+                speaker: 'Player',
+                message: "Then let's teach your taste buds to trust other deliciousness! Like Chinese! It'll be an adventure!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My taste buds are perfectly happy being uneducated and eating pizza!",
+                    choices: [
+                        { text: "But think of the knowledge! The culinary enlightenment!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerEnlightenment' },
+                        { text: "You're too cute. Okay, your taste buds can stay as they are. Pizza it is. But a little Chinese for me?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerPekingCouch': {
+                speaker: 'Player',
+                message: "It can be a chill event! We can eat it on the couch! With tiny pancakes!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Tiny pancakes are adorable! But sticky. Pizza is just one clean slice.",
+                    choices: [
+                        { text: "The stickiness is part of the fun! And worth it for the flavor!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerStickyFun' },
+                        { text: "You're right, clean is good. So, a simple Chinese dish tonight?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerSimpleChinese' },
+                    ]
+                }
+            },
+            'playerSimpleChinese': {
+                speaker: 'Player',
+                message: "You're right, Peking Duck is a big deal. How about a simpler Chinese dish then? Like stir-fry?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Stir-fry is good, I guess. But still not pizza. Does it have cheese?",
+                    choices: [
+                        { text: "No cheese, but it has amazing sauces and fresh veggies!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNoCheese' },
+                        { text: "No, but we could add some cheese to it! (Just kidding... mostly)", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerAddCheeseStirFry' },
+                    ]
+                }
+            },
+            'playerStomachBegs': {
+                speaker: 'Player',
+                message: "My stomach is also begging! For General Tso's! Or orange chicken!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Your stomach can wait! Mine is louder! It's demanding pizza!",
+                    choices: [
+                        { text: "My stomach is more articulate! It argues for nuanced flavors!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerArticulateStomach' },
+                        { text: "Okay, your stomach wins the volume contest. Pizza it is. But my stomach is pouting.", effects: { partnerScore: 1, relationshipScore: -0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerLighterWontons': {
+                speaker: 'Player',
+                message: "A blanket of joy with more calories! Wontons are lighter!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Calories are flavor! And joy! I want a heavy blanket of joy!",
+                    choices: [
+                        { text: "Heavy joy can still be Chinese! A big bowl of beef chow fun!", effects: { playerScore: 1 }, nextScene: 'playerHeavyJoy' },
+                        { text: "You're right, heavy joy is good. So, pizza tonight, but a lighter Chinese meal tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerNoBetrayal': {
+                speaker: 'Player',
+                message: "Chinese has only ever delivered pure joy! No betrayal here! Just deliciousness!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Joy is good. But cheese is better!",
+                    choices: [
+                        { text: "Joy and cheese can coexist! In Chinese food... if you try!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerCoexist' },
+                        { text: "You're right, cheese is a powerful force. So, pizza tonight. But Chinese next time is mandatory!", effects: { partnerScore: 1, relationshipScore: 0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerMildChinese': {
+                speaker: 'Player',
+                message: "We can get mild Chinese food! It doesn't have to be spicy! Like sweet and sour chicken!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Sweet and sour is okay... but still not pizza. It's missing that... *pizza*ness.",
+                    choices: [
+                        { text: "Pizza-ness is overrated! Embrace the deliciousness of not-pizza!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerNotPizza' },
+                        { text: "You're right, pizza-ness is unique. So, pizza tonight, and a mild Chinese feast another night?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerRicherLife': {
+                speaker: 'Player',
+                message: "Chinese is a *richer* life! With more flavor! More experiences!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My life is rich enough with pizza! And simplicity!",
+                    choices: [
+                        { text: "Simplicity is good, but variety is the spice of life! And Chinese has all the spices!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerSpiceOfLife' },
+                        { text: "You're right, simplicity is sometimes best. So, pizza tonight, but we splurge on an amazing Chinese dinner next week?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerJustTryIt': {
+                speaker: 'Player',
+                message: "Okay, maybe 'never go back' is strong. But it's really, really good! Just try it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "You know I love trying new things... but pizza is my comfort zone. It's safe.",
+                    choices: [
+                        { text: "But leaving your comfort zone leads to amazing discoveries! Like new Chinese dishes!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerDiscoveries' },
+                        { text: "You're right, comfort is important. So, pizza tonight, but Chinese is a must for our next 'try something new' night?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerGreaterReward': {
+                speaker: 'Player',
+                message: "But the reward is so much greater! A new favorite! Imagine the joy!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "The joy of a known favorite is also great! And requires no imagination!",
+                    choices: [
+                        { text: "But isn't it more exciting to *earn* your joy with a new discovery?", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerEarnJoy' },
+                        { text: "You're right, known joy is pretty awesome. So, pizza tonight, and we save the Chinese adventure for another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerDoubleUniversal': {
+                speaker: 'Player',
+                message: "And everyone loves Chinese! It's a double universal love!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Everyone loves pizza! It's a known fact!",
+                    choices: [
+                        { text: "And everyone loves Chinese! It's a double universal love!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerDoubleUniversal' },
+                        { text: "You're right, pizza is universally loved. So, how about we get pizza, and I'll convince you on Chinese next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerSuperiorIce': {
+                speaker: 'Player',
+                message: "It's thick ice of deliciousness! Chinese is simply superior!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Superior is a strong word! Pizza is supreme!",
+                    choices: [
+                        { text: "Supreme can also be Chinese! Supreme stir-fry!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerSupremeStirFry' },
+                        { text: "You're right, supreme pizza is hard to beat. How about we get supreme pizza, and an equally supreme Chinese appetizer?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerStrongContender': {
+                speaker: 'Player',
+                message: "Okay, maybe not *always* more delicious, but definitely a strong contender! And so many options!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Options are great... if you have the energy to choose. I just want pizza!",
+                    choices: [
+                        { text: "I'll choose for us! I'm an expert at choosing delicious Chinese!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerExpertChooser' },
+                        { text: "You're right, energy is low. So, pizza tonight. But Chinese for sure when we have more decision-making power?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerNewTradition': {
+                speaker: 'Player',
+                message: "But it *could* be! We could start a new tradition! Movie and Chinese night!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A new tradition sounds like effort! Our current tradition of pizza and a movie is effortless and perfect!",
+                    choices: [
+                        { text: "But imagine the stories we'd tell about our unique traditions!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerUniqueTraditions' },
+                        { text: "You're right, comfort in tradition is good. So, pizza and movie tonight. But Chinese another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerChineseEvolution': {
+                speaker: 'Player',
+                message: "Core desires can evolve! Embrace the Chinese evolution! It's the next step!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Evolution sounds exhausting! My core desire for pizza is perfectly evolved already!",
+                    choices: [
+                        { text: "But imagine the higher plane of culinary existence! With Chinese!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerHigherPlane' },
+                        { text: "You're right, evolution is a lot of work. So, pizza tonight, but maybe a baby step towards Chinese next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerDivineVariety': {
+                speaker: 'Player',
+                message: "Divine variety, then! Chinese offers both! Simplicity in a single dish, or a grand feast!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A grand feast sounds like too many choices! I just want one big choice: pizza!",
+                    choices: [
+                        { text: "But think of the joy of sampling many delicious things!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerJoyOfSampling' },
+                        { text: "You're right, sometimes one big choice is best. So, pizza tonight. But a Chinese feast next weekend?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerDeliciousChaos': {
+                speaker: 'Player',
+                message: "One perfect option is boring! Embrace the delicious chaos of Chinese! It's exciting!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Chaos is not what I want on a Friday night! I want predictable, comforting pizza!",
+                    choices: [
+                        { text: "But controlled chaos! The good kind of chaos! With delicious flavors!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerControlledChaos' },
+                        { text: "You're right, sometimes predictable is best. So, pizza tonight. But Chinese for a more adventurous night?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerGeneralTsoSingle': {
+                speaker: 'Player',
+                message: "General Tso's chicken! It's universally loved! Sweet, spicy, crispy!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "General Tso's is good, but it doesn't have that satisfying stretch of cheese!",
+                    choices: [
+                        { text: "It has amazing sauce! And it's so comforting!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerAmazingSauce' },
+                        { text: "You're right, the stretch is unique. How about we get one order of General Tso's and a medium pizza?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerSweetSourSingle': {
+                speaker: 'Player',
+                message: "Sweet and Sour Pork? It's always a crowd-plaser! Tangy and delicious!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Sweet and Sour Pork is fun. But it's not the same comforting hug as a pizza.",
+                    choices: [
+                        { text: "It's a different kind of hug! A delicious, tangy hug!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerTangyHug' },
+                        { text: "You're right, pizza is a special hug. So, pizza tonight, but sweet and sour pork next week?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerChineseStaycation': {
+                speaker: 'Player',
+                message: "A staycation can be Chinese too! A delicious, flavorful staycation! No passport needed!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "No passport, but still a journey! My stomach just wants to arrive at Pizza-ville!",
+                    choices: [
+                        { text: "Pizza-ville is nice, but Chinese-land is a much richer destination!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerRicherDestination' },
+                        { text: "You're right, Pizza-ville sounds very relaxing. So, pizza tonight. But a Chinese staycation for our next date night?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerHotBao': {
+                speaker: 'Player',
+                message: "Warm and gooey can be Chinese too! Like a hot bao bun! Or sticky rice!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Bao buns are good, but they're small. Pizza is grand! It's a whole pie of gooey goodness!",
+                    choices: [
+                        { text: "We can get many bao buns! A whole mountain of gooey goodness!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerMountainOfBao' },
+                        { text: "You're right, a whole pie is very appealing. So, pizza tonight, and bao buns for a snack tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerStories': {
+                speaker: 'Player',
+                message: "But the stories would be about delicious Chinese food! So worth it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "The story of me eating pizza is always a happy one! And less complicated!",
+                    choices: [
+                        { text: "Complications lead to better stories! And better flavors!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerComplications' },
+                        { text: "You're right, simple happy stories are great. So, pizza tonight. But we can tell each other Chinese food fantasies?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerStillChinese': {
+                speaker: 'Player',
+                message: "Or Chinese? Come on, you know you secretly love it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I love *you*! But my love for pizza is on a whole other level!",
+                    choices: [
+                        { text: "My love for Chinese is also on a whole other level!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerDifferentLevel' },
+                        { text: "You're too sweet. Okay, pizza it is. But I get to pick the movie!", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerEnlightenment': {
+                speaker: 'Player',
+                message: "But think of the knowledge! The culinary enlightenment! You'd be a sage of flavor!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I just want to be a satisfied eater! With pizza!",
+                    choices: [
+                        { text: "You can be a satisfied and enlightened eater! With Chinese!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerEnlightenedEater' },
+                        { text: "You're right, satisfaction is key. So, pizza tonight. But I can tell you all about Chinese food trivia?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerStickyFun': {
+                speaker: 'Player',
+                message: "The stickiness is part of the fun! And worth it for the flavor! It's a hands-on experience!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Hands-on means sticky hands! I prefer clean hands and a pizza slice.",
+                    choices: [
+                        { text: "But the joy of licking your fingers after delicious Chinese food!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerLickingFingers' },
+                        { text: "You're right, clean hands are nice. So, a less messy Chinese dish then?", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerLessMessyChinese' },
+                    ]
+                }
+            },
+            'playerNoCheese': {
+                speaker: 'Player',
+                message: "No cheese, but it has amazing sauces and fresh veggies! It's a balanced meal!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Balanced is nice, but cheese is a necessity for me!",
+                    choices: [
+                        { text: "Cheese can't be a necessity for every meal! It's bad for you!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerBadForYou' },
+                        { text: "You're right, cheese is important. How about a cheesy pizza, and a side of stir-fry for me?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerAddCheeseStirFry': {
+                speaker: 'Player',
+                message: "No, but we could add some cheese to it! (Just kidding... mostly)",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Adding cheese to stir-fry? You're a mad scientist! But... intriguing.",
+                    choices: [
+                        { text: "Mad scientists make delicious discoveries! Embrace the innovation!", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerMadScientist' },
+                        { text: "Okay, maybe that was a bridge too far. So, plain stir-fry for me, and pizza for you?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerArticulateStomach': {
+                speaker: 'Player',
+                message: "My stomach is more articulate! It argues for nuanced flavors! And cultural experience!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Nuance is for intellectuals! My stomach is a simple creature that craves pizza!",
+                    choices: [
+                        { text: "But simplicity can also be found in Chinese food! Just a simple bowl of rice!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerSimpleRice' },
+                        { text: "You're right, sometimes simple is best. So, pizza it is. But my stomach will be sending you passive-aggressive glares all night.", effects: { partnerScore: 1, relationshipScore: -0.5 }, nextScene: 'endingPizzaGrudging' },
+                    ]
+                }
+            },
+            'playerHeavyJoy': {
+                speaker: 'Player',
+                message: "Heavy joy can still be Chinese! A big bowl of beef chow fun! Or a family-sized fried rice!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Family-sized fried rice is tempting... but a family-sized pizza is a true monument to joy!",
+                    choices: [
+                        { text: "A monument to joy that's less healthy! Chinese is still a better choice!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerLessHealthy' },
+                        { text: "You're right, a pizza monument sounds epic. How about we get a family-sized pizza and a family-sized fried rice?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerCoexist': {
+                speaker: 'Player',
+                message: "Joy and cheese can coexist! In Chinese food... if you try! Think cheese wontons!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Cheese wontons? You're making things up! That's an abomination!",
+                    choices: [
+                        { text: "It's an innovation! A culinary fusion!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerInnovation' },
+                        { text: "Okay, maybe cheese wontons are a step too far. So, no cheese in Chinese food. Just deliciousness.", effects: { playerScore: 0.5, relationshipScore: 0.5 }, nextScene: 'playerNoCheeseNoWontons' },
+                    ]
+                }
+            },
+            'playerNotPizza': {
+                speaker: 'Player',
+                message: "Pizza-ness is overrated! Embrace the deliciousness of not-pizza! Expand your horizons!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My horizons are perfectly fine right here in Pizza-land! It's a beautiful horizon!",
+                    choices: [
+                        { text: "But imagine the new horizons! The culinary vistas of Chinese food!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerNewHorizons' },
+                        { text: "You're right, your horizons are lovely. So, pizza tonight, but a small step towards a new horizon next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerSpiceOfLife': {
+                speaker: 'Player',
+                message: "Simplicity is good, but variety is the spice of life! And Chinese has all the spices!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My spice of life is garlic and oregano on a pizza!",
+                    choices: [
+                        { text: "Those are good, but think of chili oil, five-spice, ginger! A symphony of flavors!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerSymphony' },
+                        { text: "You're right, garlic and oregano are classic. So, pizza tonight. But Chinese for a spicy adventure next week?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerDiscoveries': {
+                speaker: 'Player',
+                message: "But leaving your comfort zone leads to amazing discoveries! Like new Chinese dishes! You'll love them!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I already discovered pizza! That's enough discovery for me for a while!",
+                    choices: [
+                        { text: "But there's always more to discover! The world of flavor is vast!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerVastFlavor' },
+                        { text: "You're right, you've made a great discovery with pizza. So, pizza tonight. But Chinese for our next culinary exploration?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerEarnJoy': {
+                speaker: 'Player',
+                message: "But isn't it more exciting to *earn* your joy with a new discovery?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I don't want to *earn* my joy tonight! I want instant, effortless pizza joy!",
+                    choices: [
+                        { text: "Instant joy is fleeting! Earned joy is lasting!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerLastingJoy' },
+                        { text: "You're right, effortless joy sounds good tonight. So, pizza it is. But Chinese for a special, earned meal next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerCulinaryWealth': {
+                speaker: 'Player',
+                message: "You can have a monopoly on your portion! But let's share the culinary wealth! It's more fun!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Fun is sharing pizza! One big pizza for both of us!",
+                    choices: [
+                        { text: "And Chinese food is also fun to share! So many dishes!", effects: { playerScore: 1 }, nextScene: 'playerFunToShare' },
+                        { text: "You're right, sharing one big pizza is classic fun. So, pizza tonight. But a Chinese sharing feast another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerEnlightenedEater': {
+                speaker: 'Player',
+                message: "You can be a satisfied and enlightened eater! With Chinese! It's the best of both worlds!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "The best of both worlds sounds like too much work. I just want my one, perfect world of pizza!",
+                    choices: [
+                        { text: "But think of the expansion of your world! The culinary universe awaits!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerCulinaryUniverse' },
+                        { text: "You're right, one perfect world is nice. So, pizza tonight. But maybe a tiny taste of Chinese next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerLessMessyChinese': {
+                speaker: 'Player',
+                message: "You're right, clean hands are nice. So, a less messy Chinese dish then? Like stir-fried rice?",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Stir-fried rice is okay. But it doesn't have that satisfying crunch of a pizza crust!",
+                    choices: [
+                        { text: "It has delicious chewiness! And amazing flavors!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerChewiness' },
+                        { text: "You're right, the crunch is unique. So, pizza tonight, but stir-fried rice another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerBadForYou': {
+                speaker: 'Player',
+                message: "Cheese can't be a necessity for every meal! It's bad for you! We need variety for health!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "It's just one meal! And it's for my soul! And my soul needs cheese!",
+                    choices: [
+                        { text: "Your soul needs health too! And Chinese food can provide that!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerSoulNeedsHealth' },
+                        { text: "You're right, sometimes the soul needs cheese. So, pizza tonight. But we balance it with a very healthy Chinese meal tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerMadScientist': {
+                speaker: 'Player',
+                message: "Mad scientists make delicious discoveries! Embrace the innovation! Cheese stir-fry will be legendary!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Legendary or disastrous? I'm not sure I'm ready for that level of culinary experimentation tonight.",
+                    choices: [
+                        { text: "But imagine the fame! The glory! Of being the first to try cheese stir-fry!", effects: { playerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'playerFameGlory' },
+                        { text: "You're right, maybe not tonight. So, pizza for you, and a normal stir-fry for me?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerSimpleRice': {
+                speaker: 'Player',
+                message: "But simplicity can also be found in Chinese food! Just a simple bowl of rice! And maybe some bok choy!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Rice and bok choy? That sounds like a punishment! Not dinner!",
+                    choices: [
+                        { text: "It's delicious simplicity! You just don't know it yet!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerPunishment' },
+                        { text: "You're right, that might be too simple for tonight. So, pizza it is. But a full Chinese feast next time!", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerLessHealthy': {
+                speaker: 'Player',
+                message: "A monument to joy that's less healthy! Chinese is still a better choice for our bodies!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My body is a temple! A temple that craves pizza!",
+                    choices: [
+                        { text: "Temples also appreciate healthy offerings! Like Chinese!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerTempleOfferings' },
+                        { text: "You're right, your temple has its cravings. So, pizza tonight. But tomorrow we purify the temple with Chinese?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerInnovation': {
+                speaker: 'Player',
+                message: "It's an innovation! A culinary fusion! We could be pioneers!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Pioneers in bad taste! Stick to what works!",
+                    choices: [
+                        { text: "But pushing boundaries leads to greatness! Like new flavor combinations!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerPushBoundaries' },
+                        { text: "You're right, maybe not tonight. So, pizza for you, and a classic Chinese dish for me?", effects: { playerScore: 0.5, partnerScore: 0.5, relationshipScore: 1.5 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            'playerNewHorizons': {
+                speaker: 'Player',
+                message: "But imagine the new horizons! The culinary vistas of Chinese food! It's an endless landscape!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My vista is fine right here. It has mountains of cheese and rivers of sauce!",
+                    choices: [
+                        { text: "And Chinese vistas have rivers of noodles and mountains of dumplings! Even better!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerMountainsRivers' },
+                        { text: "You're right, your vista sounds pretty good. So, pizza tonight. But we can look at pictures of delicious Chinese food together?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerSymphony': {
+                speaker: 'Player',
+                message: "Those are good, but think of chili oil, five-spice, ginger! A symphony of flavors!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A symphony sounds like too much work for my ears! My taste buds just want a simple chorus of cheese!",
+                    choices: [
+                        { text: "But the complexity is what makes it beautiful! And delicious!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerComplexityBeautiful' },
+                        { text: "You're right, sometimes simple is best. So, pizza tonight. But a Chinese symphony another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerVastFlavor': {
+                speaker: 'Player',
+                message: "But there's always more to discover! The world of flavor is vast! And Chinese food is a huge part of it!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My world of flavor is perfectly happy being small and cheesy! And pizza-shaped!",
+                    choices: [
+                        { text: "But imagine the expansion! The culinary universe awaits!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerCulinaryUniverse' },
+                        { text: "You're right, your world is lovely as is. So, pizza tonight. But a taste of the vast flavor world next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerLastingJoy': {
+                speaker: 'Player',
+                message: "Instant joy is fleeting! Earned joy is lasting! And Chinese food provides lasting joy!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My pizza joy lasts until the last slice is gone! That's long enough for me!",
+                    choices: [
+                        { text: "But imagine the joy that lasts beyond the meal! The satisfaction of choosing wisely!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerBeyondMeal' },
+                        { text: "You're right, pizza joy is immediate and wonderful. So, pizza it is. But Chinese for a deeper, more lasting joy next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerFunToShare': {
+                speaker: 'Player',
+                message: "And Chinese food is also fun to share! So many dishes! A communal experience!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "A communal experience where I might have to share my favorite bite? No thanks! Pizza is simple sharing!",
+                    choices: [
+                        { text: "But the joy of trying everything! It's an adventure in sharing!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerAdventureSharing' },
+                        { text: "You're right, sometimes simple sharing is best. So, pizza tonight. But Chinese for a big family style meal next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerCulinaryUniverse': {
+                speaker: 'Player',
+                message: "But think of the expansion of your world! The culinary universe awaits! Beyond pizza!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My universe is perfectly fine being pizza-centric! It's a happy universe!",
+                    choices: [
+                        { text: "A happy universe can grow! With Chinese galaxies of flavor!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerChineseGalaxies' },
+                        { text: "You're right, a happy universe is important. So, pizza tonight. But a small exploration of the culinary universe next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerChewiness': {
+                speaker: 'Player',
+                message: "It has delicious chewiness! And amazing flavors! Perfect for a less messy night!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Chewiness is good, but that satisfying *tear* of a pizza slice is unbeatable!",
+                    choices: [
+                        { text: "Unbeatable but unoriginal! Chinese offers new sensations!", effects: { playerScore: 1, relationshipScore: -0.5 }, nextScene: 'playerNewSensations' },
+                        { text: "You're right, the tear is iconic. So, pizza tonight, but a chewy Chinese adventure next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerSoulNeedsHealth': {
+                speaker: 'Player',
+                message: "Your soul needs health too! And Chinese food can provide that! Fuel for body and soul!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My soul gets all the fuel it needs from pizza! It's a happy, well-fed soul!",
+                    choices: [
+                        { text: "But a *healthier* happy, well-fed soul! Think of the long-term deliciousness!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerLongTermDeliciousness' },
+                        { text: "You're right, your soul seems very content. So, pizza tonight. But a soul-cleansing Chinese meal tomorrow?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerFameGlory': {
+                speaker: 'Player',
+                message: "But imagine the fame! The glory! Of being the first to try cheese stir-fry!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Fame and glory can wait. My stomach just wants humble, cheesy pizza.",
+                    choices: [
+                        { text: "Humble cheese can be infused with Chinese flavors! It'll be a silent revolution!", effects: { playerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'playerSilentRevolution' },
+                        { text: "You're right, humble is good. So, pizza tonight. But we can fantasize about cheese stir-fry another time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerPunishment': {
+                speaker: 'Player',
+                message: "It's delicious simplicity! You just don't know it yet! Let me introduce you!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "I'm not in the mood for introductions right now. I'm in the mood for old friends... like pizza.",
+                    choices: [
+                        { text: "But new friends can be even better! And more delicious!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerNewFriends' },
+                        { text: "You're right, old friends are comforting. So, pizza tonight. But new Chinese friends next week?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerTempleOfferings': {
+                speaker: 'Player',
+                message: "Temples also appreciate healthy offerings! Like Chinese! It's good for spiritual and physical well-being!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "My spiritual well-being comes from the joy of pizza! My physical well-being can deal with it!",
+                    choices: [
+                        { text: "But a healthier physical well-being leads to more pizza-eating in the long run!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerLongRunPizza' },
+                        { text: "You're right, joy is important. So, pizza tonight. But we pledge to have a healthy Chinese meal soon?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerPushBoundaries': {
+                speaker: 'Player',
+                message: "But pushing boundaries leads to greatness! Like new flavor combinations! We can be culinary innovators!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Innovations are for work! Dinner is for relaxing!",
+                    choices: [
+                        { text: "But relaxing with delicious innovation! It's a new kind of chill!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerNewChill' },
+                        { text: "You're right, relaxation is key. So, pizza tonight. But we brainstorm Chinese food innovations for later?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerMountainsRivers': {
+                speaker: 'Player',
+                message: "And Chinese vistas have rivers of noodles and mountains of dumplings! Even better!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Noodle rivers and dumpling mountains sound like too much climbing! I prefer the flat, easy landscape of pizza!",
+                    choices: [
+                        { text: "But the view from the top is incredible! And delicious!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerIncredibleView' },
+                        { text: "You're right, easy is good. So, pizza tonight. But a virtual tour of Chinese food landscapes next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerComplexityBeautiful': {
+                speaker: 'Player',
+                message: "But the complexity is what makes it beautiful! And delicious! It's art!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Pizza is art! Edible art! With cheese!",
+                    choices: [
+                        { text: "Chinese food is also edible art! But more nuanced!", effects: { playerScore: 1, relationshipScore: -1 }, nextScene: 'playerNuancedArt' },
+                        { text: "You're right, pizza is a work of art. So, pizza tonight. But a trip to a Chinese art gallery (restaurant) next time?", effects: { partnerScore: 1, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                    ]
+                }
+            },
+            'playerDelightfulCulinary': {
+                speaker: 'Partner',
+                message: "A delightful culinary experience, you say? Hmm, that sounds a bit too sophisticated for my current 'just want to eat' mood. Pizza is delightfully simple!",
+                choices: [
+                    { text: "Simple can still be delicious and inspiring! Like a perfect steamed dumpling!", effects: { playerScore: 0.5, relationshipScore: -0.5 }, nextScene: 'playerSimpleInspiring' },
+                    { text: "You're right, simple is good. Maybe we can have a delicious Chinese experience some other time?", effects: { partnerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingPizzaHappy' },
+                ]
+            },
+            'playerSimpleInspiring': {
+                speaker: 'Player',
+                message: "Simple can still be delicious and inspiring! Like a perfect steamed dumpling!",
+                nextMessage: {
+                    speaker: 'Partner',
+                    message: "Steamed dumplings are certainly delicious. But they aren't quite the same as a warm, cheesy pizza.",
+                    choices: [
+                        { text: "No, but they're still amazing! And we could get spring rolls!", effects: { playerScore: 0.5 }, nextScene: 'playerSpringRolls' },
+                        { text: "You're right, nothing is quite like pizza. Maybe a slice tonight and dumplings another time?", effects: { partnerScore: 0.5, relationshipScore: 1 }, nextScene: 'endingCompromiseHappy' },
+                    ]
+                }
+            },
+            // Endings
+            'endingChineseHappy': {
+                speaker: 'Game',
+                message: "After some charming negotiation, you successfully convinced your partner! Tonight, you're indulging in delicious Chinese food. Your partner is a little sad about the lack of pizza, but mostly happy to see you get your way, and you're absolutely thrilled with the choice! A win for you, and a happy compromise overall.",
+                isEnding: true
+            },
+            'endingChineseGrudging': {
+                speaker: 'Game',
+                message: "You managed to steer the ship towards Chinese food, but it wasn't without some friction. Your partner is clearly pouting and muttering about lost pizza dreams. You got your way, but at a slight cost to the evening's perfectly harmonious vibe.",
+                isEnding: true
+            },
+            'endingPizzaHappy': {
+                speaker: 'Game',
+                message: "Your partner's love for pizza won out! You're getting pizza tonight, and your partner is absolutely ecstatic. You're a little disappointed about missing out on Chinese, but seeing their joy makes it worth it. A happy compromise, even if not your first choice!",
+                isEnding: true
+            },
+            'endingPizzaGrudging': {
+                speaker: 'Game',
+                message: "Pizza it is. Your partner is happy, but you're making it clear you're not thrilled. There's a lingering sense of disappointment on your end, and the evening might be subtly tinged with your 'I told you so' attitude, even if unsaid.",
+                isEnding: true
+            },
+            'endingCompromiseHappy': {
+                speaker: 'Game',
+                message: "You both found a sweet spot! Whether it's half-and-half, or Chinese tonight and pizza tomorrow, you've reached a truly harmonious compromise. You're both happy with the outcome and your relationship is stronger for it. Excellent negotiation skills!",
+                isEnding: true
+            },
+            'endingRelationshipStrain': {
+                speaker: 'Game',
+                message: "Oh dear. The dinner debate spiraled a bit. While you eventually settled on something (or nothing at all!), there's a definite tension in the air. Both of you are a little frustrated and the evening's fun might be overshadowed by the struggle to decide. Maybe next time, just order both!",
+                isEnding: true
+            },
+            'endingPizzaSuperHappy': {
+                speaker: 'Game',
+                message: "Your partner is over the moon! You gave in graciously, and they couldn't be happier about the pizza. You might still dream of noodles, but their sheer delight is contagious, making it a truly joyful pizza night for both of you.",
+                isEnding: true
+            }
+        };
+
+        // Function to display a message
+        function displayMessage(speaker, text) {
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble', speaker === 'Player' ? 'player-message' : 'partner-message');
+            messageBubble.textContent = text;
+            messageDisplay.appendChild(messageBubble);
+            messageDisplay.scrollTop = messageDisplay.scrollHeight; // Scroll to bottom
+            gameState.messages.push({ speaker, text }); // Store message in state
+        }
+
+        // Function to render the current scene
+        function renderScene(sceneId) {
+            const scene = scenes[sceneId];
+            if (!scene) {
+                console.error("Scene not found:", sceneId);
+                return;
+            }
+
+            // Logic to display message based on speaker and flow
+            // If it's a player's scene with a nextMessage, the player's message was already displayed by makeChoice
+            if (scene.speaker === 'Player' && scene.nextMessage) {
+                // Immediately show the partner's response without re-displaying the player's message
+                const typingIndicator = document.createElement('div');
+                typingIndicator.classList.add('typing-indicator');
+                typingIndicator.textContent = `${scene.nextMessage.speaker} is typing...`;
+                messageDisplay.appendChild(typingIndicator);
+                messageDisplay.scrollTop = messageDisplay.scrollHeight;
+
+                setTimeout(() => {
+                    messageDisplay.removeChild(typingIndicator);
+                    displayMessage(scene.nextMessage.speaker, scene.nextMessage.message);
+                    renderChoices(scene.nextMessage.choices); // Render choices after partner's message
+                }, 1500);
+            } else {
+                // For 'Partner' or 'Game' messages, or player messages that initiate a new turn (like the intro if it were player-led)
+                // Display the current scene's main message
+                displayMessage(scene.speaker, scene.message);
+
+                // Then, if there's a next message (usually partner's reply), handle it
+                if (scene.nextMessage) {
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.classList.add('typing-indicator');
+                    typingIndicator.textContent = `${scene.nextMessage.speaker} is typing...`;
+                    messageDisplay.appendChild(typingIndicator);
+                    messageDisplay.scrollTop = messageDisplay.scrollHeight;
+
+                    setTimeout(() => {
+                        messageDisplay.removeChild(typingIndicator);
+                        displayMessage(scene.nextMessage.speaker, scene.nextMessage.message);
+                        renderChoices(scene.nextMessage.choices); // Render choices after partner's message
+                    }, 1500);
+                } else if (scene.isEnding) {
+                    // Display the "Continue to Ending" button instead of immediately ending the game
+                    const continueButton = document.createElement('button');
+                    continueButton.classList.add('choice-button'); // Reuse button style
+                    continueButton.textContent = "Continue to Ending";
+                    continueButton.onclick = advanceToEnding;
+                    choiceButtonsDiv.innerHTML = ''; // Clear existing choices
+                    choiceButtonsDiv.appendChild(continueButton);
+                } else {
+                    // If no next message and not an ending, render choices immediately
+                    renderChoices(scene.choices);
+                }
+            }
+        }
+
+        // Function to render choice buttons
+        function renderChoices(choices) {
+            choiceButtonsDiv.innerHTML = ''; // Clear previous choices only when new ones are rendered
+            if (choices && choices.length > 0) {
+                choices.forEach((choice, index) => {
+                    const button = document.createElement('button');
+                    button.classList.add('choice-button');
+                    button.textContent = choice.text;
+                    button.onclick = () => makeChoice(choice);
+                    choiceButtonsDiv.appendChild(button);
+                });
+            }
+        }
+
+        // Function to handle a choice being made
+        function makeChoice(choice) {
+            // Apply effects
+            if (choice.effects) {
+                if (choice.effects.playerScore !== undefined) gameState.playerScore += choice.effects.playerScore;
+                if (choice.effects.partnerScore !== undefined) gameState.partnerScore += choice.effects.partnerScore;
+                if (choice.effects.relationshipScore !== undefined) gameState.relationshipScore += choice.effects.relationshipScore;
+            }
+
+            // Display player's chosen message (which is the choice text)
+            displayMessage('Player', choice.text);
+
+            // Move to the next scene
+            gameState.currentScene = choice.nextScene;
+            renderScene(gameState.currentScene);
+        }
+
+        // New function to advance to the ending screen
+        function advanceToEnding() {
+            endGame();
+        }
+
+        // Function to determine and display the ending
+        function endGame() {
+            let endingSceneId;
+
+            // Log scores for debugging
+            console.log("Player Score:", gameState.playerScore);
+            console.log("Partner Score:", gameState.partnerScore);
+            console.log("Relationship Score:", gameState.relationshipScore);
+
+            if (gameState.relationshipScore < -1.5) { // Significant strain
+                endingSceneId = 'endingRelationshipStrain';
+            } else if (gameState.playerScore > gameState.partnerScore + 2) { // Player pushed hard and won
+                endingSceneId = 'endingChineseHappy';
+            } else if (gameState.partnerScore > gameState.playerScore + 2) { // Partner pushed hard and won
+                 endingSceneId = 'endingPizzaSuperHappy';
+            } else if (gameState.playerScore > gameState.partnerScore + 0.5) { // Player won, but less decisively
+                endingSceneId = 'endingChineseHappy'; // Or a more "grudging" win? Let's keep it generally happy unless strain is high.
+            } else if (gameState.partnerScore > gameState.playerScore + 0.5) { // Partner won, less decisively
+                 endingSceneId = 'endingPizzaHappy'; // Or a more "grudging" win? Let's keep it generally happy unless strain is high.
+            } else { // Close scores, imply compromise
+                endingSceneId = 'endingCompromiseHappy';
+            }
+
+            // Refine endings based on relationship score if it's not a severe strain
+            if (endingSceneId === 'endingChineseHappy' && gameState.relationshipScore < 0) {
+                endingSceneId = 'endingChineseGrudging';
+            } else if (endingSceneId === 'endingPizzaHappy' && gameState.relationshipScore < 0) {
+                endingSceneId = 'endingPizzaGrudging';
+            } else if (endingSceneId === 'endingCompromiseHappy' && gameState.relationshipScore < -0.5) {
+                endingSceneId = 'endingRelationshipStrain'; // Override if compromise was tense
+            }
+
+            const endingMessage = scenes[endingSceneId].message;
+
+            // Clear game display and show ending screen
+            gameContainer.innerHTML = `
+                <div class="ending-screen">
+                    <h2>Dinner Decided!</h2>
+                    <p>${endingMessage}</p>
+                    <button id="restart-button">Play Again?</button>
+                </div>
+            `;
+            document.getElementById('restart-button').onclick = restartGame;
+        }
+
+        // Function to restart the game
+        function restartGame() {
+            // Reset game state
+            gameState = {
+                playerScore: 0,
+                partnerScore: 0,
+                relationshipScore: 0,
+                currentScene: 'intro',
+                messages: []
+            };
+
+            // Restore initial HTML structure
+            gameContainer.innerHTML = `
+                <header>Dinner Dilemma</header>
+                <div id="message-display"></div>
+                <div id="choice-buttons"></div>
+            `;
+
+            // Re-fetch the DOM elements after they've been recreated
+            messageDisplay = document.getElementById('message-display');
+            choiceButtonsDiv = document.getElementById('choice-buttons');
+
+            // Start the game again
+            renderScene(gameState.currentScene);
+        }
+
+        // Initialize the game when the window loads
+        window.onload = function() {
+            gameContainer = document.getElementById('game-container');
+            messageDisplay = document.getElementById('message-display');
+            choiceButtonsDiv = document.getElementById('choice-buttons');
+            renderScene(gameState.currentScene);
+        };
+    </script>
+</body>
+</html>
